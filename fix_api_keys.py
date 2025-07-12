@@ -1,86 +1,50 @@
 #!/usr/bin/env python3
 """
-Script to replace hardcoded API keys with placeholder text
+Script to replace API keys with placeholder text in Jupyter notebooks
 """
 
 import re
+import json
 import os
 
-def replace_api_keys_in_file(file_path):
-    """Replace API keys with placeholder text in a file"""
-    try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        # Replace various API key patterns
-        original_content = content
-        
-        # Replace sk-proj- keys (OpenAI project keys)
-        content = re.sub(
-            r'sk-proj-[a-zA-Z0-9_-]{48}',
-            'your-openai-api-key-here',
-            content
-        )
-        
-        # Replace sk-or-v1- keys (OpenRouter keys)
-        content = re.sub(
-            r'sk-or-v1-[a-zA-Z0-9_-]{48}',
-            'your-openrouter-api-key-here',
-            content
-        )
-        
-        # Replace simple 'keyyy' or 'key' placeholders
-        content = re.sub(
-            r"'keyyy'",
-            "'your-api-key-here'",
-            content
-        )
-        content = re.sub(
-            r"'key'",
-            "'your-api-key-here'",
-            content
-        )
-        
-        # If content changed, write it back
-        if content != original_content:
-            with open(file_path, 'w', encoding='utf-8') as f:
-                f.write(content)
-            print(f"✅ Fixed API keys in {file_path}")
-            return True
-        else:
-            print(f"ℹ️  No API keys found in {file_path}")
-            return False
-            
-    except Exception as e:
-        print(f"❌ Error processing {file_path}: {e}")
-        return False
+def fix_notebook_file(file_path):
+    """Replace API keys with placeholder text in a Jupyter notebook"""
+    print(f"Processing: {file_path}")
+    
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Replace actual API keys with placeholders
+    # Pattern for OpenAI API keys (sk- followed by alphanumeric characters)
+    content = re.sub(r'sk-[a-zA-Z0-9]{48}', 'your-openai-api-key-here', content)
+    
+    # Pattern for OpenRouter API keys (if they follow a different pattern)
+    content = re.sub(r'your-openrouter-api-key-here[a-zA-Z0-9]+', 'your-openrouter-api-key-here', content)
+    
+    # Pattern for any remaining API keys that might be in the format shown in the error
+    content = re.sub(r'your-openai-api-key-here[a-zA-Z0-9_-]+', 'your-openai-api-key-here', content)
+    
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+    
+    print(f"Fixed: {file_path}")
 
 def main():
-    """Main function to fix API keys in all problematic files"""
-    
-    # Files mentioned in the GitHub error
+    """Main function to fix all affected files"""
     files_to_fix = [
-        '.virtual_documents/week5/Untitled.ipynb',
         'week1/week1 EXERCISE.ipynb',
-        'week2/day1.ipynb',
-        'week2/day2.ipynb'
+        'week2/day1.ipynb', 
+        'week2/day2.ipynb',
+        '.virtual_documents/week5/Untitled.ipynb'
     ]
     
-    print("🔍 Fixing API keys in files...")
-    
-    fixed_count = 0
     for file_path in files_to_fix:
         if os.path.exists(file_path):
-            if replace_api_keys_in_file(file_path):
-                fixed_count += 1
+            fix_notebook_file(file_path)
         else:
-            print(f"⚠️  File not found: {file_path}")
+            print(f"File not found: {file_path}")
     
-    print(f"\n🎉 Fixed API keys in {fixed_count} files!")
-    print("\n📝 Next steps:")
-    print("1. Add these files to .gitignore if they contain sensitive data")
-    print("2. Use environment variables for API keys instead of hardcoding")
-    print("3. Try pushing to GitHub again")
+    print("\nAll files processed. Please commit and push again.")
 
 if __name__ == "__main__":
     main() 
